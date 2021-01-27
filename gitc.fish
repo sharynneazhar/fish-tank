@@ -1,7 +1,4 @@
-// Arguments: 
-// * commit_message (optional)
-//
-// Usage: gitc <commit_message>
+// Usage: gitc [message]
 
 function gitc
     set branchname (git branch | grep '*' | sed 's/* //')

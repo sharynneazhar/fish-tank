@@ -23,13 +23,6 @@ Like `git commit -m` without the need to quote the commit message. This also pre
 
 If no commit message is given and there's only 1 file changed, commit "(Add / Update / Delete) (that file)".
 
-```bash
-sharynneazhar at sharynnes-mbp in ~/D/s/nc_integration_service on TF2-661 [!]
-↪ gitc Remove changes for different story
-[TF2-661 914690de] TF2-661 Remove changes for different story
- 1 file changed, 4 deletions(-)
-```
-
 ### `wip [message]`
 
 [Source](./wip.fish)

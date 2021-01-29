@@ -15,6 +15,8 @@ My fish tank for all fish-related configs and function files. Inspired by [fish-
 
 [Source](./gb-clear.fish)
 
+Deletes all "gone" remote branches from local machine.
+
 ### `gitc [message]`
 
 [Source](./gitc.fish)

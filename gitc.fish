@@ -1,5 +1,3 @@
-// Usage: gitc [message]
-
 function gitc
     set branchname (git branch | grep '*' | sed 's/* //')
 
@@ -35,19 +33,19 @@ function gitc
                 echo "Nothing staged"
             case 1
                 if [ $n_new_files = 1 ]
-                    git commit -m "$branchname Add $new_files"
+                    git commit -m "[$branchname] Add $new_files"
                 else if [ $n_deleted_files = 1 ]
-                    git commit -m "$branchname Delete $deleted_files"
+                    git commit -m "[$branchname] Delete $deleted_files"
                 else if [ $n_updated_files = 1 ]
-                    git commit -m "$branchname Update $updated_files"
+                    git commit -m "[$branchname] Update $updated_files"
                 else if [ $n_renamed_files = 1 ]
                     git diff --cached --name-status | read _ from to
-                    git commit -m "$branchname Rename $from to $to"
+                    git commit -m "[$branchname] Rename $from to $to"
                 end
             case '*'
                 echo "Multiple files changes; add a commit message"
         end
     else
-        git commit -m (echo "$branchname $argv")
+        git commit -m (echo "[$branchname] $argv")
     end
 end

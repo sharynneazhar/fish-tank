@@ -5,5 +5,5 @@ function wip
       git add .
     end
     
-    git commit --no-verify -m "wip $argv"
+    git commit --no-verify -m "[WIP] $argv"
 end

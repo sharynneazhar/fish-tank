@@ -7,6 +7,7 @@ My fish tank for all fish-related configs and function files. Inspired by [fish-
 * [Git Utilities](#git-utilities)
   * [`gb-clear`](#gb-clear)
   * [`gitc`](#gitc-message)
+  * [`gsync`](#gsync)
   * [`wip`](#wip-message)
   
 ## Git Utilities
@@ -24,6 +25,12 @@ Deletes all "gone" remote branches from local machine.
 Like `git commit -m` without the need to quote the commit message. This also prefixes the commit message with the branch name.
 
 If no commit message is given and there's only 1 file changed, commit "(Add / Update / Delete) (that file)".
+
+### `gsync`
+
+[Source](./gsync.fish)
+
+Deletes all "gone" remote branches from local machine and sync current checked out branch with remote.
 
 ### `wip [message]`
 

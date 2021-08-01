@@ -1,0 +1,201 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dashboard-ui-service
+    role: backend-service
+    team: daft
+  name: dashboard-ui-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-ui-service
+  template:
+    metadata:
+      labels:
+        app: dashboard-ui-service
+        team: daft
+    spec:
+      containers:
+      - env:
+        - name: NODE_ENV
+          value: DEV
+        - name: CONFIG_SERVICE_CACHE_TIMEOUT_SECONDS
+          value: '60'
+        - name: TOL_323_KTAG_EMAIL_FEATURE_FLAG
+          value: 'true'
+        - name: TOL_326_KTAG_PAYMENTS_FEATURE_FLAG
+          value: 'true'
+        - name: STL_COURTS_V3_ENABLED
+          value: 'true'
+        - name: KCK_COURTS_V3_ENABLED
+          value: 'true'
+        - name: KCK_PAYIT_SHOW_COVID_MESSAGE
+          value: 'false'
+        - name: KS_CDL_ENABLED
+          value: 'true'
+        - name: GR_PARKING_USE_CITATIONS_SERVICE
+          value: 'true'
+        - name: GR_PAYIT_SHOW_COVID_MESSAGE
+          value: 'true'
+        - name: NC_PAYIT_SHOW_2020_CENSUS_MESSAGE
+          value: 'false'
+        - name: NC_PAYIT_SHOW_2020_VOTER_REGISTRATION_MESSAGE
+          value: 'true'
+        - name: GR_EBILLING_ENABLED
+          value: 'true'
+        - name: MEMPHIS_SCHEDULED_PAYMENT_FEATURE_FLAG
+          value: 'true'
+        - name: MEMPHIS_PRESENTABLES_FEATURE_FLAG
+          value: 'false'
+        - name: NC_YTA_ENABLED
+          value: 'true'
+        - name: NC_EXPIRATION_DATE_FEATURE_FLAG
+          value: 'true'
+        - name: BEAUFORT_ALLOW_MULTIPLE_CONCURRENT_INSTALLMENTS
+          value: 'true'
+        - name: TX_TAG_PASSWORD_REQUIREMENTS_MESSAGE
+          value: 'Your password must have 8-64 characters. It must contain at least
+            one upper case alphabetic, one lower case alphabetic character, one number,
+            and one special character (! @ # $ % * ( ) - _ + = ~ ; , .).'
+        - name: NC_DASHBOARD_VEHICLES_SKIP_CONVERSATION_START_FEATURE_FLAG
+          value: 'true'
+        - name: OKLAHOMA_SERVICES_HAVE_SHUT_DOWN
+          value: 'true'
+        - name: KDHE_PAYIT_SHOW_VITALS_ORDERS_DELAY_MESSAGE
+          value: 'false'
+        - name: FLDBPR_COSMO_RENEWAL_ACCORDION_ENABLED
+          value: 'true'
+        - name: FLDBPR_BARBER_RENEWAL_ACCORDION_ENABLED
+          value: 'true'
+        - name: FLDBPR_LINK_LICENSE_ENABLED
+          value: 'true'
+        - name: FLDBPR_LICENSE_LASTUPDATED_ENABLED
+          value: 'true'
+        - name: NC_ID_CARD_ENABLED
+          value: 'true'
+        - name: BEAUFORT_PAYIT_SHOW_COVID_MESSAGE
+          value: 'true'
+        - name: NC_VR_LRP_EXPIRATION_FIX_ENABLED
+          value: 'true'
+        - name: GR_MANAGED_PAY_V3_ENABLED
+          value: 'true'
+        - name: KANSAS_PAYIT_SHOW_DONATE_LIFE_MESSAGE
+          value: 'false'
+        - name: GENERIC_EBILLING_ENABLED
+          value: 'true'
+        - name: AUTOPAY_FEATURE_ENABLED
+          value: 'true'
+        - name: CHILDREN_PER_PAGE
+          value: '10'
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['version']
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: DD_SERVICE
+          value: dashboard-ui-service
+        envFrom:
+        - configMapRef:
+            name: dev-node-config
+        - configMapRef:
+            name: dev-observability-config
+        image: payitadmin/dashboard_ui_service:1.167.0
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: app
+            scheme: HTTPS
+          initialDelaySeconds: 300
+          timeoutSeconds: 10
+        name: dashboard-ui-service
+        ports:
+        - containerPort: 5900
+          name: app
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: app
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 50m
+            memory: 256Mi
+          requests:
+            cpu: 25m
+            memory: 128Mi
+      imagePullSecrets:
+      - name: dockerhub
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    projectcontour.io/upstream-protocol.tls: '5900'
+  labels:
+    app: dashboard-ui-service
+    team: daft
+  name: dashboard-ui-service
+spec:
+  ports:
+  - nodePort: 30059
+    port: 5900
+    targetPort: 5900
+  selector:
+    app: dashboard-ui-service
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dashboard-ui-service
+    team: daft
+  name: dashboard-ui-service-admin
+spec:
+  ports:
+  - name: admin
+    port: 5904
+    targetPort: 5904
+  selector:
+    app: dashboard-ui-service
+  type: ClusterIP
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  labels:
+    app: dashboard-ui-service
+  name: dashboard-ui-service
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dashboard-ui-service
+  updatePolicy:
+    updateMode: 'Off'
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: dashboard-ui-service
+  namespace: default
+spec:
+  routes:
+  - services:
+    - name: dashboard-ui-service
+      port: 5900
+    timeoutPolicy:
+      response: 45s
+  virtualhost:
+    fqdn: 5900-dev.mobilgov.com
+    tls:
+      secretName: default/dashboard-ui-service-le-tls

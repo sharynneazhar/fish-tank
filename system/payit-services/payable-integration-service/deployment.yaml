@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: payable-integration-service
+    role: backend-service
+    team: civics
+  name: payable-integration-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payable-integration-service
+  template:
+    metadata:
+      labels:
+        app: payable-integration-service
+        role: backend-service
+    spec:
+      containers:
+      - env:
+        - name: PIS_NEW_INGESTION_STORE
+          value: 'false'
+        - name: PIS_MOCK_DATA
+          value: 'false'
+        - name: CONSTITUENT_DATA_STORE_HOST
+          value: constituent-data-store-system.payitgov.com
+        - name: CONSTITUENT_DATA_STORE_PORT
+          value: ''
+        - name: CONSTITUENT_DATA_STORE_MOCK
+          value: 'false'
+        - name: PAYABLE_MULESOFT_SOIDS
+          value: nj_isf_tolls
+        - name: CONSTITUENT_DATA_STORE_USE_HTTPS
+          value: 'true'
+        - name: CONSTITUENT_DATA_STORE_TRUST_STORE_PATH
+          value: cacerts.jks
+        - name: CONSTITUENT_DATA_STORE_TRUST_STORE_PASSWORD
+          value: vqxu7qNSUXIV6Md2hWYiWByz9O8wVljPPY8PBsd34GuQJBAkybczcX7GqbeteS0Z
+        - name: PIS_SOIDS
+          value: nj_isf_tolls,1d9cfa01-32e2-4560-ac6e-15bd9eeae51f
+        envFrom:
+        - configMapRef:
+            name: system-config
+        image: payitadmin/payable_integration_service:0.18.1
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: app
+            scheme: HTTPS
+          initialDelaySeconds: 300
+          timeoutSeconds: 10
+        name: payable-integration-service
+        ports:
+        - containerPort: 10300
+          name: app
+        - containerPort: 10304
+          name: admin
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: app
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 750m
+            memory: 786Mi
+          requests:
+            cpu: 25m
+            memory: 256Mi
+      imagePullSecrets:
+      - name: dockerhub
